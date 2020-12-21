@@ -3,6 +3,7 @@ blueprint:
   description: >
     Philips Friends of Hue Smart Switch (4 buttons), like senic https://de.senic.com based on PTM 215ZE EnOcean Alliance
   domain: automation
+  source_url: https://github.com/myGithub-Markus/home-assistant_blueprints/edit/main/deconz_friends_of_hue_smart_switch_fourfold_button.yaml
   input:
     remote:
       name: Remote
