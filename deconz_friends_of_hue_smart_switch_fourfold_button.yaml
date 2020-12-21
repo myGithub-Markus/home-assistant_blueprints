@@ -1,0 +1,190 @@
+blueprint:
+  name: deCONZ - Philips Friends of Hue Smart Switch (4 buttons)
+  description: >
+    Philips Friends of Hue Smart Switch (4 buttons), like senic https://de.senic.com based on PTM 215ZE EnOcean Alliance
+  domain: automation
+  input:
+    remote:
+      name: Remote
+      description: Senic remote
+      selector:
+        device:
+          integration: deconz
+          manufacturer: PhilipsFoH
+          model: FOHSWITCH
+    button_one_single_press:
+      name: 1 button - Single press
+      description: Action single press of 1 button
+      default: []
+      selector:
+        action: {}
+    button_one_double_press:
+      name: 1 button - Double press
+      description: Action double press of 1 button
+      default: []
+      selector:
+        action: {}
+    button_one_long:
+      name: 1 button - Long press
+      description: Action 1 button press long
+      default: []
+      selector:
+        action: {}
+    button_two_single_press:
+      name: 2 button - Single press
+      description: Action single press of 2 button
+      default: []
+      selector:
+        action: {}
+    button_two_double_press:
+      name: 2 button - Double press
+      description: Action double press of 2 button
+      default: []
+      selector:
+        action: {}
+    button_two_long:
+      name: 2 button - Long press
+      description: Action 2 button press long
+      default: []
+      selector:
+        action: {}
+    button_three_single_press:
+      name: 3 button - Single press
+      description: Action single press of 3 button
+      default: []
+      selector:
+        action: {}
+    button_three_double_press:
+      name: 3 button - Double press
+      description: Action double press of 3 button
+      default: []
+      selector:
+        action: {}
+    button_three_long:
+      name: 3 button - Long press
+      description: Action 3 button press long
+      default: []
+      selector:
+        action: {}
+    button_four_single_press:
+      name: 4 button - Single press
+      description: Action single press of 4 button
+      default: []
+      selector:
+        action: {}
+    button_four_double_press:
+      name: 4 button - Double press
+      description: Action double press of 4 button
+      default: []
+      selector:
+        action: {}
+    button_four_long:
+      name: 4 button - Long press
+      description: Action 4 button press long
+      default: []
+      selector:
+        action: {}
+    both_buttons_one_and_two_single_press:
+      name: Both buttons 1 + 2 - Single press
+      description: Action single press of both buttons 1 + 2
+      default: []
+      selector:
+        action: {}
+    both_buttons_one_and_two_double_press:
+      name: Both buttons 1 + 2 - Double press
+      description: Action double press of both buttons 1 + 2
+      default: []
+      selector:
+        action: {}
+    both_buttons_one_and_two_long:
+      name: Both buttons 1 + 2 - Long press
+      description: Action both buttons 1 + 2 press long
+      default: []
+      selector:
+        action: {}
+    both_buttons_three_and_four_single_press:
+      name: Both buttons 3 + 4 - Single press
+      description: Action single press of both buttons 3 + 4
+      default: []
+      selector:
+        action: {}
+    both_buttons_three_and_four_double_press:
+      name: Both buttons 3 + 4 - Double press
+      description: Action double press of both buttons 3 + 4
+      default: []
+      selector:
+        action: {}
+    both_buttons_three_and_four_long:
+      name: Both buttons 3 + 4 - Long press
+      description: Action both buttons 3 + 4 press long
+      default: []
+      selector:
+        action: {}
+        
+mode: restart
+max_exceeded: silent
+
+trigger:
+- platform: event
+  event_type: deconz_event
+  event_data:
+    device_id: !input 'remote'
+
+action:
+- variables:
+    event: '{{ trigger.event.data.event }}'
+- choose:
+  - conditions:
+    - '{{ event == 1001 }}'
+    sequence: !input 'button_one_long'
+  - conditions:
+    - '{{ event == 1002 }}'
+    sequence: !input 'button_one_single_press'
+  - conditions:
+    - '{{ event == 1004 }}'
+    sequence: !input 'button_one_double_press'
+  - conditions:
+    - '{{ event == 2001 }}'
+    sequence: !input 'button_two_long'
+  - conditions:
+    - '{{ event == 2002 }}'
+    sequence: !input 'button_two_single_press'
+  - conditions:
+    - '{{ event == 2004 }}'
+    sequence: !input 'button_two_double_press'
+  - conditions:
+    - '{{ event == 3001 }}'
+    sequence: !input 'button_three_long'
+  - conditions:
+    - '{{ event == 3002 }}'
+    sequence: !input 'button_three_single_press'
+  - conditions:
+    - '{{ event == 3004 }}'
+    sequence: !input 'button_three_double_press'
+  - conditions:
+    - '{{ event == 4001 }}'
+    sequence: !input 'button_four_long'
+  - conditions:
+    - '{{ event == 4002 }}'
+    sequence: !input 'button_four_single_press'
+  - conditions:
+    - '{{ event == 4004 }}'
+    sequence: !input 'button_four_double_press'
+  - conditions:
+    - '{{ event == 5001 }}'
+    sequence: !input 'both_buttons_one_and_two_long'
+  - conditions:
+    - '{{ event == 5002 }}'
+    sequence: !input 'both_buttons_one_and_two_single_press'
+  - conditions:
+    - '{{ event == 5004 }}'
+    sequence: !input 'both_buttons_one_and_two_double_press'
+  - conditions:
+    - '{{ event == 6001 }}'
+    sequence: !input 'both_buttons_three_and_four_long'
+  - conditions:
+    - '{{ event == 6002 }}'
+    sequence: !input 'both_buttons_three_and_four_single_press'
+  - conditions:
+    - '{{ event == 6004 }}'
+    sequence: !input 'both_buttons_three_and_four_double_press'
