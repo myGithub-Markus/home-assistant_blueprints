@@ -1,0 +1,123 @@
+blueprint:
+  name: Motion Aware Entities Toggling
+  description: >
+    Turn a entity on and off based on detected motion but only if certain criteria a matched provided by a Illuminance-Sensor.  
+    Also allows to disable motion aware entities. This might be useful for example if a person is in the bed or a movie is playing.
+  domain: automation
+  input:
+    motion_sensor:
+        name: Motion Sensor
+        description: This sensor will be synchronized with the entities.
+        selector:
+            entity:
+                domain: binary_sensor
+                device_class: motion
+    no_motion_wait:
+        name: Wait time
+        description: Time to wait until the entities should be turned off.
+        default: 120
+        selector:
+            number:
+                min: 0
+                max: 3600
+                unit_of_measurement: seconds
+    illuminance_sensor:
+        name: Illuminance Sensor
+        description: "Sensor that decides if entities should be turned on based on the illuminance."
+        selector:
+            entity:
+                domain: sensor
+                device_class: illuminance
+    illuminance_threshold:
+        name: Illumincance Threshold (Optional)
+        description: "Defines the illumincance threshold below which the entities should turn on."
+        default: 300
+        selector:
+            number:
+                min: 0
+                max: 100000
+                unit_of_measurement: lux
+    entity_blocker:
+        name: Entity Blocker
+        description: "Input Boolean that decides if entities shall not be interacted with - state on is do not turn on entities."
+        selector:
+            entity:
+                domain: input_boolean
+    motion_activated:
+        name: Motion activated
+        description: "Input Boolean that shows if the entities was turned on via motion"
+        selector:
+            target:
+                entity:
+                    domain: input_boolean
+    disabled_entity:
+        name: Disabled Mode (Optional)
+        description: "Input Boolean that decides if entities shall not be interacted with - state on is do not turn on entities."
+        default:
+        selector:
+            entity:
+                domain: input_boolean
+    target_entity:
+        name: Entity
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input motion_sensor
+    to: 'on'
+  - platform: state
+    entity_id: !input illuminance_sensor
+  - platform: state
+    entity_id: !input entity_blocker
+    to: 'on'
+
+variables:
+  illuminance_sensor: !input illuminance_sensor
+  illuminance_threshold: !input illuminance_threshold
+  entity_blocker: !input entity_blocker
+  disabled_entity: !input disabled_entity
+  target_entity: !input target_entity
+  entity_domain: "{{ states[target_entity].domain }}"
+
+condition:
+  - "{{ disabled_entity == none or is_state(disabled_entity, 'off') }}"
+
+action:
+  - choose:
+      - conditions:
+          - "{{ entity_blocker == none or is_state(entity_blocker, 'off') }}"
+          - "{{ illuminance_sensor != none and states(illuminance_sensor)|int  >  illuminance_threshold|int }}"
+          - condition: state
+            entity_id: !input motion_sensor
+            state: 'on'
+        sequence:
+          - service: input_boolean.turn_off
+            target: !input motion_activated
+          - service: "{{entity_domain}}.turn_off"
+            entity_id: !input target_entity
+      - conditions:
+          - "{{ entity_blocker == none or is_state(entity_blocker, 'off') }}"
+          - "{{ illuminance_sensor != None and states(illuminance_sensor)|int  <  illuminance_threshold|int }}"
+          - condition: state
+            entity_id: !input motion_sensor
+            state: 'on'
+        sequence:
+          - service: input_boolean.turn_on
+            target: !input motion_activated
+          - service: "{{entity_domain}}.turn_on"
+            entity_id: !input target_entity
+          - wait_for_trigger:
+              platform: state
+              entity_id: !input motion_sensor
+              from: 'on'
+              to: 'off'
+          - delay: !input no_motion_wait
+          - service: input_boolean.turn_off
+            target: !input motion_activated
+          - service: "{{entity_domain}}.turn_off"
+            entity_id: !input target_entity
