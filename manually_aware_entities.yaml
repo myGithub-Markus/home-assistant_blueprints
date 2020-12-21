@@ -1,0 +1,60 @@
+blueprint:
+  name: Manually Aware Entities
+  description: >
+    ...
+  domain: automation
+  input:
+    target_entity_blocker:
+        name: Entity blocker
+        description: "Input Boolean that decides if entities blocked manually."
+        selector:
+            target:
+                entity:
+                    domain: input_boolean
+    target_motion_activated:
+        name: Motion activated
+        description: "Motion activated to keep in sync."
+        selector:
+            target:
+                entity:
+                    domain: input_boolean
+    motion_activated:
+        name: Motion activated
+        description: "Input Boolean that shows if the entities turned on via motion"
+        selector:
+            entity:
+                domain: input_boolean
+    target_entity:
+        name: Entity
+        description: "This entity will be synchronized with the Input Boolean's."
+        selector:
+            entity:
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input target_entity
+
+variables:
+  motion_activated: !input motion_activated
+  target_entity: !input target_entity
+  entity_domain: "{{ states[target_entity].domain }}"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - "{{ ((entity_domain == 'scene') or states[target_entity].state == 'on') and is_state(motion_activated, 'off') }}"
+        sequence:
+          - service: input_boolean.turn_on
+            target: !input target_entity_blocker
+      - conditions:
+          - "{{ (entity_domain == 'scene') or states[target_entity].state == 'off' }}"
+        sequence:
+          - service: input_boolean.turn_off
+            target: !input target_entity_blocker
+          - service: input_boolean.turn_off
+            target: !input target_motion_activated
