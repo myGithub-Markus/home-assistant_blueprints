@@ -1,0 +1,216 @@
+blueprint:
+  name: Motion aware climate
+  description: >
+    Turn a climate up and down based on detected motion, night mode and window sensor. Also allows to disable motion aware climate. This might be useful for example if no one's at home.
+  domain: automation
+  input:
+    motion_sensor:
+        name: Motion Sensor
+        description: 'This sensor will be synchronized with the climate.'
+        selector:
+            entity:
+                domain: binary_sensor
+                device_class: motion
+    high_temparture:
+        name: (OPTIONAL) High temparture
+        description: 'High temparture'
+        default: 18
+        selector:
+            number:
+                min: 6
+                max: 24
+    low_temparture:
+        name: (OPTIONAL) Low temparture
+        description: 'Low temparture'
+        default: 12
+        selector:
+            number:
+                min: 6
+                max: 24
+    forest_protection_temparture:
+        name: (OPTIONAL) Forest protection temparture
+        description: 'Forest protection temparture'
+        default: 6
+        selector:
+            number:
+                min: 6
+                max: 12
+    no_motion_wait:
+        name: (OPTIONAL) wait time no motion
+        description: 'Time to wait until the climates should be turn down heating.'
+        default: 7200
+        selector:
+            number:
+                min: 1
+                max: 86400
+                unit_of_measurement: seconds
+    motion_wait:
+        name: (OPTIONAL) Wait time
+        description: 'Time to wait until the climates should be turn up heating.'
+        default: 360
+        selector:
+            number:
+                min: 1
+                max: 86400
+                unit_of_measurement: seconds
+    disabled:
+        name: Disabled mode
+        description: 'Decides if climates shall set to forest protection temparture.'
+        default:
+        selector:
+            entity:
+                domain: input_boolean
+    night:
+        name: Night mode
+        description: 'Decides if climates shall be turn down heating'
+        default:
+        selector:
+            entity:
+                domain: input_boolean
+    target_climate:
+        name: Climate
+        description: 'The climate to keep in sync.'
+        selector:
+          entity:
+            domain: climate
+    window_entity:
+        name: Window Sensor
+        selector:
+          entity:
+    action_forest_protection_temparture:
+      name: Action forest protection temparture action
+      description: Action for set forest protection temparture e.g. TTS
+      default: []
+      selector:
+        action: {}
+    action_normal_temparture:
+      name: Action normal temparture action
+      description: Action for normal temparture e.g. TTS
+      default: []
+      selector:
+        action: {}
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input motion_sensor
+    from: 'off'
+    to: 'on'
+    for:
+      seconds: !input motion_wait
+  - platform: state
+    entity_id: !input disabled
+  - platform: state
+    entity_id: !input night
+  - platform: state
+    entity_id: !input window_entity
+    from: 'off'
+    to: 'on'
+
+variables:
+  disabled: !input disabled
+  night: !input night
+  target_climate: !input target_climate
+  forest_protection_temparture: !input forest_protection_temparture
+  high_temparture: !input high_temparture
+  low_temparture: !input low_temparture
+  current_temperature: "{{ state_attr(target_climate, 'temperature') }}"
+  action_forest_protection_temparture: !input action_forest_protection_temparture
+  action_normal_temparture: !input action_normal_temparture
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - "{{ is_state(disabled, 'on') }}"
+        sequence:
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{forest_protection_temparture}}"
+      - conditions:
+          - "{{ is_state(disabled, 'off') }}"
+          - condition: state
+            entity_id: !input window_entity
+            state: 'on'
+        sequence:
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{forest_protection_temparture}}"
+          - choose: []
+            default: !input 'action_forest_protection_temparture'
+          - wait_for_trigger:
+              platform: state
+              entity_id: !input window_entity
+              from: "on"
+              to: "off"
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{current_temperature}}"
+          - choose: []
+            default: !input 'action_normal_temparture'
+      - conditions:
+          - "{{ is_state(disabled, 'off') }}"
+          - "{{ is_state(night, 'off') }}"
+          - condition: state
+            entity_id: !input motion_sensor
+            state: 'on'
+          - condition: state
+            entity_id: !input window_entity
+            state: 'off'
+        sequence:
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{high_temparture}}"
+          - wait_for_trigger:
+              platform: state
+              entity_id: !input motion_sensor
+              from: 'on'
+              to: 'off'
+          - delay:
+              seconds: !input no_motion_wait
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{low_temparture}}"
+      - conditions:
+          - "{{ is_state(disabled, 'off') }}"
+          - "{{ is_state(night, 'on') }}"
+          - condition: state
+            entity_id: !input window_entity
+            state: 'off'
+        sequence:
+          - service: climate.set_hvac_mode
+            entity_id: !input target_climate
+            data:
+              hvac_mode: "heat"
+          - service: climate.set_temperature
+            entity_id: !input target_climate
+            data:
+              temperature: "{{low_temparture}}"
