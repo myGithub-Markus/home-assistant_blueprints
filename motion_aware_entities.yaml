@@ -1,5 +1,5 @@
 blueprint:
-  name: Motion Aware Entities Toggling
+  name: Motion aware entities toggling
   description: >
     Turn a entity on and off based on detected motion but only if certain criteria a matched provided by a Illuminance-Sensor.  
     Also allows to disable motion aware entities. This might be useful for example if a person is in the bed or a movie is playing.
