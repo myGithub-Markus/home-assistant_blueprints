@@ -3,7 +3,7 @@ blueprint:
   description: >
      Flashing lights via on off and delay and finally restore the previous light states.
   domain: automation
-  source_url: https://github.com/myGithub-Markus/home-assistant_blueprints/edit/main/flashing_lights.yaml
+  source_url: https://github.com/myGithub-Markus/home-assistant_blueprints/blob/main/flashing_lights.yaml
   input:
     activated:
         name: Activated
