@@ -1,7 +1,7 @@
 blueprint:
-  name: Manually Aware Entities
+  name: Manually aware entities
   description: >
-    ...
+    Overrides motion aware entities. This is usefull for take over light control via switch. Means switch off and on take over the motion aware light control
   domain: automation
   input:
     target_entity_blocker:
