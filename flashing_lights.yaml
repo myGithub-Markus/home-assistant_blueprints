@@ -1,0 +1,66 @@
+blueprint:
+  name: flashing lights
+  description: >
+     Flashing lights via on off and delay and finally restore the previous light states.
+  domain: automation
+  input:
+    activated:
+        name: Activated
+        description: "Toggle to activated or deactivated flashing. E.g. for fire alarm"
+        selector:
+            entity:
+                domain: input_boolean
+    target_lights:
+        name: Lights
+        description: "To flashing lights"
+        selector:
+          target:
+            entity:
+              domain: light
+    delay:
+      name: (OPTIONAL) Delay
+      description: "Delay flashing lights"
+      default: 1000
+      selector:
+        number:
+          min: 0
+          max: 20000
+          unit_of_measurement: milliseconds
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input activated
+    to: 'on'
+
+variables:
+  activated: !input activated
+  delay: !input delay
+  target_lights: !input target_lights
+
+condition: []
+
+action:
+  - service: scene.create
+    data:
+        scene_id: all_lights_snapshot
+        snapshot_entities: >
+               {% set lights = states.light
+                 | map(attribute='entity_id') | join(',') %}
+                 {{lights}}
+  - service: light.turn_on
+    target: !input target_lights
+  - repeat:
+      while:
+      - condition: template
+        value_template: "{{ activated == none or is_state(activated, 'on') }}"
+      sequence:
+      - delay: 
+          milliseconds: "{{ delay }}"
+      - service: light.toggle
+        target: !input target_lights
+  - service: scene.turn_on
+    data:
+      entity_id: scene.all_lights_snapshot
