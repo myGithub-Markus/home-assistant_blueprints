@@ -7,7 +7,7 @@ blueprint:
   input:
     activated:
         name: Activated
-        description: "Toggle to activated or deactivated flashing. E.g. for fire alarm"
+        description: "Toggle to activate or deactivate flashing lights."
         selector:
             entity:
                 domain: input_boolean
