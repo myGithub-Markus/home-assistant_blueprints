@@ -15,109 +15,109 @@ blueprint:
           model: FOHSWITCH
     button_one_single_press:
       name: 1 button - Single press
-      description: Action single press of 1 button
+      description: Action to run on a single press of the button 1
       default: []
       selector:
         action: {}
-    button_one_double_press:
-      name: 1 button - Double press
-      description: Action double press of 1 button
+    button_one_hold_in:
+      name: 1 button - Hold in
+      description: Action to run when button 1 held in
       default: []
       selector:
         action: {}
-    button_one_long:
-      name: 1 button - Long press
-      description: Action 1 button press long
+    button_one_hold_release:
+      name: 1 button - Hold release
+      description:  Action to run when button 1 was held in and released
       default: []
       selector:
         action: {}
     button_two_single_press:
       name: 2 button - Single press
-      description: Action single press of 2 button
+      description: Action to run on a single press of the button 2
       default: []
       selector:
         action: {}
-    button_two_double_press:
-      name: 2 button - Double press
-      description: Action double press of 2 button
+    button_two_hold_in:
+      name: 2 button - hold in
+      description: Action to run when button 2 held in
       default: []
       selector:
         action: {}
-    button_two_long:
-      name: 2 button - Long press
-      description: Action 2 button press long
+    button_two_hold_release:
+      name: 2 button - Hold release
+      description:  Action to run when button 2 was held in and released
       default: []
       selector:
         action: {}
     button_three_single_press:
       name: 3 button - Single press
-      description: Action single press of 3 button
+      description: Action to run on a single press of the button 3
       default: []
       selector:
         action: {}
-    button_three_double_press:
-      name: 3 button - Double press
-      description: Action double press of 3 button
+    button_three_hold_in:
+      name: 3 button - hold in
+      description: Action to run when button 3 held in
       default: []
       selector:
         action: {}
-    button_three_long:
-      name: 3 button - Long press
-      description: Action 3 button press long
+    button_three_hold_release:
+      name: 3 button - Hold release
+      description:  Action to run when button 3 was held in and released
       default: []
       selector:
         action: {}
     button_four_single_press:
       name: 4 button - Single press
-      description: Action single press of 4 button
+      description: Action to run on a single press of the button 4
       default: []
       selector:
         action: {}
-    button_four_double_press:
-      name: 4 button - Double press
-      description: Action double press of 4 button
+    button_four_hold_in:
+      name: 4 button - hold in
+      description: Action to run when button 4 held in
       default: []
       selector:
         action: {}
-    button_four_long:
-      name: 4 button - Long press
-      description: Action 4 button press long
+    button_four_hold_release:
+      name: 4 button - Hold release
+      description: Action to run when button 4 was held in and released
       default: []
       selector:
         action: {}
     both_buttons_one_and_two_single_press:
       name: Both buttons 1 + 2 - Single press
-      description: Action single press of both buttons 1 + 2
+      description: Action to run on a single press of both buttons 1 + 2
       default: []
       selector:
         action: {}
-    both_buttons_one_and_two_double_press:
-      name: Both buttons 1 + 2 - Double press
-      description: Action double press of both buttons 1 + 2
+    both_buttons_one_and_two_hold_in:
+      name: Both buttons 1 + 2 - hold in
+      description: Action to run when both buttons 1 + 2 held in
       default: []
       selector:
         action: {}
-    both_buttons_one_and_two_long:
-      name: Both buttons 1 + 2 - Long press
-      description: Action both buttons 1 + 2 press long
+    both_buttons_one_and_two_hold_release:
+      name: Both buttons 1 + 2 - Hold release
+      description: Action to run when both buttons 1 + 2 were held in and released
       default: []
       selector:
         action: {}
     both_buttons_three_and_four_single_press:
       name: Both buttons 3 + 4 - Single press
-      description: Action single press of both buttons 3 + 4
+      description: Action to run on a single press of both buttons 3 + 4
       default: []
       selector:
         action: {}
-    both_buttons_three_and_four_double_press:
-      name: Both buttons 3 + 4 - Double press
-      description: Action double press of both buttons 3 + 4
+    both_buttons_three_and_four_hold_in:
+      name: Both buttons 3 + 4 - hold in
+      description: Action to run when both buttons 3 + 4 held in
       default: []
       selector:
         action: {}
-    both_buttons_three_and_four_long:
-      name: Both buttons 3 + 4 - Long press
-      description: Action both buttons 3 + 4 press long
+    both_buttons_three_and_four_hold_release:
+      name: Both buttons 3 + 4 - Hold release
+      description: Action to run when both buttons 3 + 4 were held in and released
       default: []
       selector:
         action: {}
@@ -137,55 +137,55 @@ action:
 - choose:
   - conditions:
     - '{{ event == 1001 }}'
-    sequence: !input 'button_one_long'
+    sequence: !input 'button_one_hold_in'
   - conditions:
     - '{{ event == 1002 }}'
     sequence: !input 'button_one_single_press'
   - conditions:
-    - '{{ event == 1004 }}'
-    sequence: !input 'button_one_double_press'
+    - '{{ event == 1003 }}'
+    sequence: !input 'button_one_hold_release'
   - conditions:
     - '{{ event == 2001 }}'
-    sequence: !input 'button_two_long'
+    sequence: !input 'button_two_hold_in'
   - conditions:
     - '{{ event == 2002 }}'
     sequence: !input 'button_two_single_press'
   - conditions:
-    - '{{ event == 2004 }}'
-    sequence: !input 'button_two_double_press'
+    - '{{ event == 2003 }}'
+    sequence: !input 'button_two_hold_release'
   - conditions:
     - '{{ event == 3001 }}'
-    sequence: !input 'button_three_long'
+    sequence: !input 'button_three_hold_in'
   - conditions:
     - '{{ event == 3002 }}'
     sequence: !input 'button_three_single_press'
   - conditions:
-    - '{{ event == 3004 }}'
-    sequence: !input 'button_three_double_press'
+    - '{{ event == 3003 }}'
+    sequence: !input 'button_three_hold_release'
   - conditions:
     - '{{ event == 4001 }}'
-    sequence: !input 'button_four_long'
+    sequence: !input 'button_four_hold_in'
   - conditions:
     - '{{ event == 4002 }}'
     sequence: !input 'button_four_single_press'
   - conditions:
-    - '{{ event == 4004 }}'
-    sequence: !input 'button_four_double_press'
+    - '{{ event == 4003 }}'
+    sequence: !input 'button_four_hold_release'
   - conditions:
     - '{{ event == 5001 }}'
-    sequence: !input 'both_buttons_one_and_two_long'
+    sequence: !input 'both_buttons_one_and_two_hold_in'
   - conditions:
     - '{{ event == 5002 }}'
     sequence: !input 'both_buttons_one_and_two_single_press'
   - conditions:
-    - '{{ event == 5004 }}'
-    sequence: !input 'both_buttons_one_and_two_double_press'
+    - '{{ event == 5003 }}'
+    sequence: !input 'both_buttons_one_and_two_hold_release'
   - conditions:
     - '{{ event == 6001 }}'
-    sequence: !input 'both_buttons_three_and_four_long'
+    sequence: !input 'both_buttons_three_and_four_hold_in'
   - conditions:
     - '{{ event == 6002 }}'
     sequence: !input 'both_buttons_three_and_four_single_press'
   - conditions:
-    - '{{ event == 6004 }}'
-    sequence: !input 'both_buttons_three_and_four_double_press'
+    - '{{ event == 6003 }}'
+    sequence: !input 'both_buttons_three_and_four_hold_release'  
