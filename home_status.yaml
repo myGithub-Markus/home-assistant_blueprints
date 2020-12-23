@@ -8,13 +8,13 @@ blueprint:
   input:
     security_night:
         name: security night binary sensor
-        description: 
+        description:  "Sensor that decides if night mode is turned on or off for security status"
         selector:
             entity:
                 domain: binary_sensor
     energy_night:
         name: energy night binary sensor
-        description: ....
+        description: "Sensor that decides if night mode is turned on or off for energy status."
         selector:
             entity:
                 domain: binary_sensor
@@ -26,20 +26,20 @@ blueprint:
                 domain: binary_sensor
     climate_night:
         name: climate night binary sensor
-        description: ....
+        description: "Sensor that decides if night mode is turned on or off for climate status"
         selector:
             entity:
                 domain: binary_sensor
     motion_sensor:
         name: Motion Sensor
-        description: This sensor will be synchronized with before states like before_night or away.
+        description: "This sensor will be synchronized with before status items like before_way & before_night"
         selector:
             entity:
                 domain: binary_sensor
                 device_class: motion
     no_motion_wait:
         name: Wait time
-        description: Time to wait until the entities should be continue.
+        description: "Time to wait until the entities should be continue."
         default: 120
         selector:
             number:
@@ -48,31 +48,31 @@ blueprint:
                 unit_of_measurement: seconds
     target_home_state:
         name: Home State
-        description: "The Entity to keep in sync."
+        description: "... ."
         selector:
           entity:
             domain: input_select
     target_climate_state:
         name: Climate State
-        description: "The Entity to keep in sync."
+        description:  "... ."
         selector:
           entity:
             domain: input_select
     target_light_state:
         name: Light State
-        description: "The Entity to keep in sync."
+        description:  "... ."
         selector:
           entity:
             domain: input_select
     target_security_state:
         name: Security State
-        description: "The Entity to keep in sync."
+        description:  "... ."
         selector:
           entity:
             domain: input_select
     target_energy_state:
         name: Energy State
-        description: "The Entity to keep in sync."
+        description:  "... ."
         selector:
           entity:
             domain: input_select
