@@ -1,0 +1,446 @@
+blueprint:
+  name: Home Status Control
+  description: >
+    ...
+  domain: automation
+  input:
+    security_night:
+        name: security night binary sensor
+        description: ....
+        selector:
+            entity:
+                domain: binary_sensor
+    energy_night:
+        name: energy night binary sensor
+        description: ....
+        selector:
+            entity:
+                domain: binary_sensor
+    light_night:
+        name: light night binary sensor
+        description: ....
+        selector:
+            entity:
+                domain: binary_sensor
+    climate_night:
+        name: climate night binary sensor
+        description: ....
+        selector:
+            entity:
+                domain: binary_sensor
+    motion_sensor:
+        name: Motion Sensor
+        description: This sensor will be synchronized with before states like before_night or away.
+        selector:
+            entity:
+                domain: binary_sensor
+                device_class: motion
+    no_motion_wait:
+        name: Wait time
+        description: Time to wait until the entities should be continue.
+        default: 120
+        selector:
+            number:
+                min: 0
+                max: 3600
+                unit_of_measurement: seconds
+    target_home_state:
+        name: Home State
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+            domain: input_select
+    target_climate_state:
+        name: Climate State
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+            domain: input_select
+    target_light_state:
+        name: Light State
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+            domain: input_select
+    target_security_state:
+        name: Security State
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+            domain: input_select
+    target_energy_state:
+        name: Energy State
+        description: "The Entity to keep in sync."
+        selector:
+          entity:
+            domain: input_select
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: 
+     - !input target_home_state
+     - !input target_climate_state
+     - !input target_energy_state
+     - !input target_light_state
+     - !input target_security_state
+  - platform: state
+    entity_id: 
+      - !input climate_night
+      - !input security_night
+      - !input light_night
+      - !input energy_night
+
+variables:
+  target_climate_state: !input target_climate_state
+  target_home_state: !input target_home_state
+  target_energy_state: !input target_energy_state
+  target_security_state: !input target_security_state
+  target_light_state: !input target_light_state
+  climate_night: !input climate_night
+  security_night: !input security_night
+  energy_night: !input energy_night
+  light_night: !input light_night
+  motion_sensor: !input motion_sensor
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - "{{ is_state(energy_night, 'on') and is_state(target_energy_state, 'at_home') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_energy_state
+              option: 'before_night'
+      - conditions:
+          - "{{ is_state(target_energy_state, 'before_night') }}"
+        sequence:
+          - wait_template: >
+              {{ is_state(motion_sensor, 'off') }}
+          - delay: 
+              seconds:  !input no_motion_wait
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_energy_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(security_night, 'on') and is_state(target_security_state, 'at_home') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_security_state
+              option: 'before_night'
+      - conditions:
+          - "{{ is_state(target_security_state, 'before_night') }}"
+        sequence:
+          - wait_template: >
+              {{ is_state(motion_sensor, 'off') }}
+          - delay: 
+              seconds:  !input no_motion_wait
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_security_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(climate_night, 'on') and is_state(target_climate_state, 'at_home') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_climate_state
+              option: 'before_night'
+      - conditions:
+          - "{{ is_state(target_climate_state, 'before_night') }}"
+        sequence:
+          - wait_template: >
+              {{ is_state(motion_sensor, 'off') }}
+          - delay: 
+              seconds:  !input no_motion_wait
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_climate_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(light_night, 'on') and is_state(target_light_state, 'at_home') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_light_state
+              option: 'before_night'
+      - conditions:
+          - "{{ is_state(target_light_state, 'before_night') }}"
+        sequence:
+          - wait_template: >
+              {{ is_state(motion_sensor, 'off') }}
+          - delay: 
+              seconds:  !input no_motion_wait
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_light_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(target_home_state, 'before_night') }}"
+        sequence:
+          - wait_template: >
+              {{ is_state(motion_sensor, 'off') }}
+          - delay: 
+              seconds:  !input no_motion_wait
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_home_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(target_home_state, 'before_away') }}"
+        sequence:
+          - wait_template: "{{ is_state(motion_sensor, 'off') }}"
+            timeout: !input no_motion_wait
+          - choose:
+              - conditions:
+                  - "{{ not wait.completed }}"
+                sequence:
+                  - delay: 
+                      seconds:  !input no_motion_wait
+                  - service: input_select.select_option
+                    data:
+                      entity_id: !input target_home_state
+                      option: 'at_home'
+            default:
+              - delay: 
+                  seconds:  !input no_motion_wait
+              - service: input_select.select_option
+                data:
+                  entity_id: !input target_home_state
+                  option: 'away'
+      - conditions:
+          - "{{ is_state(target_home_state, 'leave') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_light_state
+                - !input target_security_state
+              option: 'away'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_energy_state
+              option: 'leave'
+      - conditions:
+          - "{{ is_state(target_home_state, 'long_away') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_light_state
+                - !input target_security_state
+              option: 'away'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_energy_state
+              option: 'long_away'
+      - conditions:
+          - "{{ is_state(target_home_state, 'away') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'away'
+      - conditions:
+          - "{{ is_state(target_home_state, 'night') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'off') }}"
+          - "{{ is_state(light_night, 'off') }}"
+          - "{{ is_state(security_night, 'off') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'on') }}"
+          - "{{ is_state(light_night, 'off') }}"
+          - "{{ is_state(security_night, 'off') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_climate_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_light_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'off') }}"
+          - "{{ is_state(light_night, 'on') }}"
+          - "{{ is_state(security_night, 'off') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_light_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'off') }}"
+          - "{{ is_state(light_night, 'on') }}"
+          - "{{ is_state(security_night, 'on') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_security_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'off') }}"
+          - "{{ is_state(light_night, 'off') }}"
+          - "{{ is_state(security_night, 'off') }}"
+          - "{{ is_state(energy_night, 'on') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: !input target_energy_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'on') }}"
+          - "{{ is_state(light_night, 'on') }}"
+          - "{{ is_state(security_night, 'off') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'on') }}"
+          - "{{ is_state(light_night, 'on') }}"
+          - "{{ is_state(security_night, 'on') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_energy_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'on') }}"
+          - "{{ is_state(light_night, 'on') }}"
+          - "{{ is_state(security_night, 'on') }}"
+          - "{{ is_state(energy_night, 'on') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+                - !input target_security_state
+                - !input target_energy_state
+              option: 'night'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'on') }}"
+          - "{{ is_state(light_night, 'off') }}"
+          - "{{ is_state(security_night, 'on') }}"
+          - "{{ is_state(energy_night, 'off') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_security_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_energy_state
+                - !input target_light_state
+              option: 'at_home'
+      - conditions:
+          - "{{ is_state(target_home_state, 'at_home') }}"
+          - "{{ is_state(climate_night, 'off') }}"
+          - "{{ is_state(light_night, 'off') }}"
+          - "{{ is_state(security_night, 'on') }}"
+          - "{{ is_state(energy_night, 'on') }}"
+        sequence:
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_energy_state
+                - !input target_security_state
+              option: 'night'
+          - service: input_select.select_option
+            data:
+              entity_id: 
+                - !input target_climate_state
+                - !input target_light_state
+              option: 'at_home'
