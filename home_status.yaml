@@ -1,12 +1,14 @@
 blueprint:
   name: Home Status Control
   description: >
-    ...
+    controls home status for different status groups like light, climate, security and energy.
+    These status group are responsible for their automatic controlling.
+    Following possible status group items: at_home, away, long_away,  leave, night, before_night, before_away.
   domain: automation
   input:
     security_night:
         name: security night binary sensor
-        description: ....
+        description: 
         selector:
             entity:
                 domain: binary_sensor
