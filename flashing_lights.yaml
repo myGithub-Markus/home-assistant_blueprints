@@ -10,7 +10,6 @@ blueprint:
         description: "Toggle to activate or deactivate flashing lights."
         selector:
             entity:
-                domain: input_boolean
     target_lights:
         name: Lights
         description: "To flashing lights"
