@@ -26,6 +26,11 @@ blueprint:
           min: 0
           max: 20000
           unit_of_measurement: milliseconds
+    color:
+      name: Lights color
+      default: red
+      selector:
+        text:
 
 mode: restart
 max_exceeded: silent
@@ -52,6 +57,8 @@ action:
                  {{lights}}
   - service: light.turn_on
     target: !input target_lights
+    data: 
+      color_name: !input color
   - repeat:
       while:
       - condition: template
