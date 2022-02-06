@@ -1,22 +1,42 @@
 blueprint:
   name: flashing lights
   description: >
-     Flashing lights via on off and delay and finally restore the previous light states.
+    Flashing lights via on off and delay and finally restore the previous light states.
   domain: automation
   source_url: https://github.com/myGithub-Markus/home-assistant_blueprints/blob/main/flashing_lights.yaml
   input:
     activated:
-        name: Activated
-        description: "Toggle to activate or deactivate flashing lights."
-        selector:
-            entity:
-    target_lights:
-        name: Lights
-        description: "To flashing lights"
-        selector:
-          target:
-            entity:
-              domain: light
+      name: Sensor
+      description: "Sensor to activate or deactivate flashing lights."
+      selector:
+        entity:
+    activated_states:
+      name: States to match with activated sensor (optional)
+      description: "A comma separated list of activated states."
+      default: "on"
+    activated_timeout:
+      name: (OPTIONAL) activated timeout
+      description: "Max time to leave flashing light during activated sensor state is true. '0' means no timeout is defined."
+      default: 0
+      selector:
+        number:
+          min: 1
+          max: 3600
+          unit_of_measurement: seconds
+    light_target:
+      name: Light
+      description: "To using lights"
+      selector:
+        target:
+          entity:
+            domain: light
+    scene_target:
+      name: Scene
+      default: scene.none
+      description: "To using scene"
+      selector:
+        entity:
+          domain: scene
     delay:
       name: (OPTIONAL) Delay
       description: "Delay flashing lights"
@@ -27,40 +47,88 @@ blueprint:
           max: 20000
           unit_of_measurement: milliseconds
 
-mode: restart
+mode: single
 max_exceeded: silent
 
 trigger:
   - platform: state
     entity_id: !input activated
-    to: 'on'
 
 variables:
   activated: !input activated
+  activated_states_str: !input activated_states
+  activated_states: "{{ activated_states_str.split(',') | map('trim') | list }}"
+  activated_timeout: !input activated_timeout
   delay: !input delay
-  target_lights: !input target_lights
+  scene_target: !input scene_target
 
 condition: []
 
 action:
   - service: scene.create
     data:
-        scene_id: all_lights_snapshot
-        snapshot_entities: >
-               {% set lights = states.light
-                 | map(attribute='entity_id') | join(',') %}
-                 {{lights}}
-  - service: light.turn_on
-    target: !input target_lights
-  - repeat:
-      while:
-      - condition: template
-        value_template: "{{ activated == none or is_state(activated, 'on') }}"
-      sequence:
-      - delay: 
-          milliseconds: "{{ delay }}"
-      - service: light.toggle
-        target: !input target_lights
-  - service: scene.turn_on
-    data:
-      entity_id: scene.all_lights_snapshot
+      scene_id: all_lights_snapshot
+      snapshot_entities: >
+        {{ states.light | map(attribute='entity_id') | join(',') }}
+  - choose:
+      - conditions:
+          - "{{ scene_target == 'scene.none' }}"
+        sequence:
+          - service: light.turn_off
+            target: !input light_target
+          - repeat:
+              while:
+                - condition: template
+                  value_template: >
+                    {% set time_now = as_timestamp(now()) %}
+                    {% set activated_last_changed = float(states[activated].last_changed.timestamp(),0) %}
+                    {% set is_timed_out = false %}
+                    {% if activated_timeout > 0 %}
+                    {% set is_timed_out = (time_now - activated_last_changed) > activated_timeout %}
+                    {% endif %} 
+                    {% set activated_state = 'unknown' %}
+                    {% if activated is defined %}
+                    {% set activated_state = states(activated) %}
+                    {% endif %} 
+                    {{ activated_state in activated_states and not is_timed_out }}
+              sequence:
+                - delay:
+                    milliseconds: >
+                      {{ delay }}
+                - service: light.toggle
+                  target: !input light_target
+          - service: scene.turn_on
+            data:
+              entity_id: scene.all_lights_snapshot
+      - conditions:
+          - "{{ scene_target != 'scene.none' }}"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: >
+                    {% set time_now = as_timestamp(now()) %}
+                    {% set activated_last_changed = float(states[activated].last_changed.timestamp(),0) %}
+                    {% set is_timed_out = false %}
+                    {% if activated_timeout > 0 %}
+                    {% set is_timed_out = (time_now - activated_last_changed) > activated_timeout %}
+                    {% endif %} 
+                    {% set activated_state = 'unknown' %}
+                    {% if activated is defined %}
+                    {% set activated_state = states(activated) %}
+                    {% endif %} 
+                    {{ activated_state in activated_states and not is_timed_out }}
+              sequence:
+                - service: scene.turn_on
+                  entity_id: !input scene_target
+                - delay:
+                    milliseconds: >
+                      {{ delay }}
+                - service: light.turn_off
+                  target: !input light_target
+                - delay:
+                    milliseconds: >
+                      {{ delay }}
+          - service: scene.turn_on
+            data:
+              entity_id: scene.all_lights_snapshot
