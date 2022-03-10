@@ -123,13 +123,14 @@ action:
       - conditions:
           - "{{ scene_target == 'scene.none' }}"
         sequence:
-          - service: light.turn_off          
-            target: !input light_target
           - service: light.turn_on
             target: !input light_target
             data:
               color_name: !input color_rgb
               brightness: !input brightness_rgb
+          - delay:
+            milliseconds: >
+            {{ delay }}
           - repeat:
               while:
                 - condition: template
