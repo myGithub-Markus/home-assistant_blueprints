@@ -30,6 +30,55 @@ blueprint:
         target:
           entity:
             domain: light
+    color_rgb:
+      name: RGBColor
+      description: Choose the color for blinking lights
+      selector:
+        select:
+          options:
+            - white   
+            - red
+            - green
+            - lime
+            - blue
+            - navy
+            - yellow
+            - orange
+            - turquoise
+            - violet
+            - magenta
+            - aliceblue
+            - antiquewhite
+            - aquamarine
+            - aqua
+            - cadetblue
+            - coral
+            - cornflowerblue
+            - crimson
+            - darkblue
+            - darkorange
+            - darkorchid
+            - darksalmon
+            - darkslategray
+            - deeppink
+            - darkviolet
+            - deepskyblue
+            - ghostwhite
+            - gold
+            - lawngreen
+            - lightcoral
+            - lightgreen
+            - lightseagreen
+    brightness_rgb:
+      name: (OPTIONAL) Light Brightness
+      description: Color Brigthness between 0 to 255
+      selector:
+        number:
+          min: 0
+          max: 255
+          unit_of_measurement: RGB
+          step: 1.0
+          mode: slider            
     scene_target:
       name: Scene
       default: scene.none
@@ -74,8 +123,13 @@ action:
       - conditions:
           - "{{ scene_target == 'scene.none' }}"
         sequence:
-          - service: light.turn_off
+          - service: light.turn_off          
             target: !input light_target
+          - service: light.turn_on
+            target: !input light_target
+            data:
+              color_name: !input color_rgb
+              brightness: !input brightness_rgb
           - repeat:
               while:
                 - condition: template
