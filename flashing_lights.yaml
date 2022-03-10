@@ -129,8 +129,8 @@ action:
               color_name: !input color_rgb
               brightness: !input brightness_rgb
           - delay:
-            milliseconds: >
-            {{ delay }}
+              milliseconds: >
+                {{ delay }}
           - repeat:
               while:
                 - condition: template
