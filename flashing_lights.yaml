@@ -20,7 +20,7 @@ blueprint:
       default: 0
       selector:
         number:
-          min: 1
+          min: 0
           max: 3600
           unit_of_measurement: seconds
     light_target:
