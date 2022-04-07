@@ -88,7 +88,7 @@ blueprint:
           domain: scene
     delay:
       name: (OPTIONAL) Delay
-      description: "Delay flashing lights"
+      description: "Delay between flashes"
       default: 1000
       selector:
         number:
