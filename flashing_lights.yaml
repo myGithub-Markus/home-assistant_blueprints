@@ -71,7 +71,7 @@ blueprint:
             - lightseagreen
     brightness_rgb:
       name: (OPTIONAL) Light Brightness
-      description: Color Brigthness between 0 to 255
+      description: Color Brightness between 0 to 255
       selector:
         number:
           min: 0
