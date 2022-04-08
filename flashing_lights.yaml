@@ -1,3 +1,8 @@
+# flashing lights -- originally by myGithub-Markus/home-assistant_blueprints
+# forked by mnowok with additions at https://github.com/mnowok/home-assistant_blueprints
+# further additions by fat-tire at https://github.com/fat-tire/home-assistant_blueprints
+#  ...and that's the magic of open source!
+
 blueprint:
   name: flashing lights
   description: >
