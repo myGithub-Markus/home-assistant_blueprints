@@ -1,35 +1,133 @@
+# flashing lights -- originally by myGithub-Markus/home-assistant_blueprints
+# forked by mnowok with additions at https://github.com/mnowok/home-assistant_blueprints
+# further additions by fat-tire at https://github.com/fat-tire/home-assistant_blueprints
+#  ...and that's the magic of open source!
+
 blueprint:
   name: flashing lights
   description: >
-    Flashing lights via on off and delay and finally restore the previous light states.
+    Flash lights (1 or 2 colors) w/custom delay, initiated by a sensor, then restore the previous light states.
   domain: automation
   source_url: https://github.com/myGithub-Markus/home-assistant_blueprints/blob/main/flashing_lights.yaml
   input:
     activated:
       name: Sensor
-      description: "Sensor to activate or deactivate flashing lights."
+      description: "Sensor to activate or deactivate flashing."
       selector:
         entity:
     activated_states:
-      name: States to match with activated sensor (optional)
-      description: "A comma separated list of activated states."
+      name: States to match with above sensor
+      description: "A comma separated list of activated states.  For example, if a switch or a door sensor is used to trigger the flashing when \"on\", leave the default \"on\" here."
       default: "on"
-    activated_timeout:
-      name: (OPTIONAL) activated timeout
-      description: "Max time to leave flashing light during activated sensor state is true. '0' means no timeout is defined."
-      default: 0
-      selector:
-        number:
-          min: 1
-          max: 3600
-          unit_of_measurement: seconds
     light_target:
       name: Light
-      description: "To using lights"
+      description: "What do you want to flash?"
       selector:
         target:
           entity:
             domain: light
+    color_rgb:
+      name: RGB Color (Primary)
+      description: Choose the primary color for the flashing light
+      default: red
+      selector:
+        select:
+          options:
+            - white
+            - red
+            - green
+            - lime
+            - blue
+            - navy
+            - yellow
+            - orange
+            - turquoise
+            - violet
+            - magenta
+            - aliceblue
+            - antiquewhite
+            - aquamarine
+            - aqua
+            - cadetblue
+            - coral
+            - cornflowerblue
+            - crimson
+            - darkblue
+            - darkorange
+            - darkorchid
+            - darksalmon
+            - darkslategray
+            - deeppink
+            - darkviolet
+            - deepskyblue
+            - ghostwhite
+            - gold
+            - lawngreen
+            - lightcoral
+            - lightgreen
+            - lightseagreen
+    brightness_rgb:
+      name: Primary light Brightness
+      description: A level between 1 to 255
+      default: 180
+      selector:
+        number:
+          min: 1
+          max: 255
+          unit_of_measurement: RGB
+          step: 1.0
+          mode: slider          
+    colortwo_rgb:
+      name: RGB Color (Secondary)
+      description: Choose an optional second color to flash
+      default: blue
+      selector:
+        select:
+          options:
+            - white   
+            - red
+            - green
+            - lime
+            - blue
+            - navy
+            - yellow
+            - orange
+            - turquoise
+            - violet
+            - magenta
+            - aliceblue
+            - antiquewhite
+            - aquamarine
+            - aqua
+            - cadetblue
+            - coral
+            - cornflowerblue
+            - crimson
+            - darkblue
+            - darkorange
+            - darkorchid
+            - darksalmon
+            - darkslategray
+            - deeppink
+            - darkviolet
+            - deepskyblue
+            - ghostwhite
+            - gold
+            - lawngreen
+            - lightcoral
+            - lightgreen
+            - lightseagreen
+    brightnesstwo_rgb:
+      name: Secondary light brightness 
+      description: Level between 1 to 255.  Keep low (0 or 1) to only blink the primary color
+      default: 0
+      selector:
+        number:
+          min: 1
+          max: 255
+          unit_of_measurement: RGB
+          step: 1.0
+          mode: slider            
     scene_target:
       name: Scene
       default: scene.none
@@ -38,15 +136,23 @@ blueprint:
         entity:
           domain: scene
     delay:
-      name: (OPTIONAL) Delay
-      description: "Delay flashing lights"
-      default: 1000
+      name: Flashing speed
+      description: "How long between flashes.  (Note that some lights may also have their own independently-set transition duration)."
+      default: 500
       selector:
         number:
           min: 0
           max: 20000
           unit_of_measurement: milliseconds
-
+    activated_timeout:
+      name: Flashing timeout (optional)
+      description: "Max total time for flashing light while activated sensor state is true. '0' means no timeout is defined."
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
 mode: single
 max_exceeded: silent
 
@@ -74,8 +180,6 @@ action:
       - conditions:
           - "{{ scene_target == 'scene.none' }}"
         sequence:
-          - service: light.turn_off
-            target: !input light_target
           - repeat:
               while:
                 - condition: template
@@ -92,14 +196,28 @@ action:
                     {% endif %} 
                     {{ activated_state in activated_states and not is_timed_out }}
               sequence:
+                - service: light.turn_on
+                  target: !input light_target
+                  data:
+                    color_name: !input color_rgb
+                    brightness: !input brightness_rgb
                 - delay:
                     milliseconds: >
                       {{ delay }}
-                - service: light.toggle
+                - service: light.turn_on
                   target: !input light_target
+                  data:
+                    color_name: !input colortwo_rgb
+                    brightness: !input brightnesstwo_rgb
+                - delay:
+                    milliseconds: >
+                       {{ delay }}
+          - delay:
+              milliseconds: >
+                 {{ delay }}
           - service: scene.turn_on
             data:
-              entity_id: scene.all_lights_snapshot
+               entity_id: scene.all_lights_snapshot
       - conditions:
           - "{{ scene_target != 'scene.none' }}"
         sequence:
