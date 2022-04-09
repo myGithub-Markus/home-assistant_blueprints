@@ -180,13 +180,6 @@ action:
       - conditions:
           - "{{ scene_target == 'scene.none' }}"
         sequence:
-          - service: light.turn_on
-            target: !input light_target
-            data:
-              color_name: !input color_rgb
-              brightness: !input brightness_rgb
-          - delay:
-              milliseconds: 1000
           - repeat:
               while:
                 - condition: template
